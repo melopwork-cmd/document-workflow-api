@@ -51,6 +51,8 @@ This Java 17 and Spring Boot sample models document intake and review. It illust
 
 ### Available transitions
 
+`GET /documents/states` returns the allowed transitions for each state. It can be used before opening a particular document.
+
 `GET /documents/{id}/transitions` returns the current `version` and `allowedStates`. An archived document has an empty list.
 
 Use `GET /documents?limit=25&offset=25` for the second page. Omit `offset` to start at the first result. Add `title` to match a case-insensitive literal substring before pagination.

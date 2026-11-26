@@ -64,6 +64,17 @@ class DocumentWorkflowTest {
     }
 
     @Test
+    void exposesTheWorkflowGraphWithoutRequiringADocument() throws Exception {
+        http.perform(get("/documents/states"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.RECEIVED[0]").value("IN_REVIEW"))
+                .andExpect(jsonPath("$.IN_REVIEW.length()").value(2))
+                .andExpect(jsonPath("$.APPROVED[0]").value("ARCHIVED"))
+                .andExpect(jsonPath("$.REJECTED[0]").value("ARCHIVED"))
+                .andExpect(jsonPath("$.ARCHIVED.length()").value(0));
+    }
+
+    @Test
     void rejectsIllegalTransitionAndLeavesHistoryUntouched() throws Exception {
         var id = intake();
         http.perform(post("/documents/{id}/transitions", id)

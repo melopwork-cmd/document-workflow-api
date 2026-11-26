@@ -1,7 +1,9 @@
 package dev.melopwork.documentworkflow;
 
 import java.net.URI;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import jakarta.validation.Valid;
@@ -35,6 +37,15 @@ public class DocumentController {
 
     public DocumentController(DocumentService service) {
         this.service = service;
+    }
+
+    @GetMapping("/states")
+    public Map<DocumentState, List<DocumentState>> states() {
+        var states = new EnumMap<DocumentState, List<DocumentState>>(DocumentState.class);
+        for (var state : DocumentState.values()) {
+            states.put(state, state.availableTransitions());
+        }
+        return states;
     }
 
     @PostMapping
