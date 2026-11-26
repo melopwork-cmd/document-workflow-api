@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -37,6 +39,15 @@ public class DocumentController {
     public ResponseEntity<DocumentService.Document> intake(@Valid @RequestBody Intake body) {
         var document = service.create(body.title());
         return ResponseEntity.created(URI.create("/documents/" + document.id())).body(document);
+    }
+
+    @GetMapping
+    public List<DocumentService.Document> list(
+            @RequestParam(required = false) DocumentState state, @RequestParam(defaultValue = "25") int limit) {
+        if (limit < 1 || limit > 100) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Limit must be between 1 and 100");
+        }
+        return service.list(state, limit);
     }
 
     @GetMapping("/{id}")

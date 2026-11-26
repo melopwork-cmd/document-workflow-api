@@ -108,6 +108,28 @@ class DocumentWorkflowTest {
         }
     }
 
+    @Test
+    void listsDocumentsWithStateFilterAndBoundedLimit() throws Exception {
+        var id = documents.create("Document for listing").id();
+        documents.transition(id, DocumentState.IN_REVIEW, 0);
+        documents.transition(id, DocumentState.REJECTED, 1);
+        documents.transition(id, DocumentState.ARCHIVED, 2);
+        documents.create("Document still in intake");
+
+        http.perform(get("/documents").param("state", "ARCHIVED").param("limit", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(id.toString()))
+                .andExpect(jsonPath("$[0].state").value("ARCHIVED"));
+        http.perform(get("/documents").param("limit", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1));
+        http.perform(get("/documents").param("limit", "101"))
+                .andExpect(status().isBadRequest());
+        http.perform(get("/documents").param("state", "UNKNOWN"))
+                .andExpect(status().isBadRequest());
+    }
+
     private UUID intake() throws Exception {
         var created = http.perform(post("/documents")
                         .contentType(MediaType.APPLICATION_JSON)
