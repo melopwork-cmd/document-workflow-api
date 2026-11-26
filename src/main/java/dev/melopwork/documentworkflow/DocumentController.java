@@ -48,7 +48,8 @@ public class DocumentController {
             @RequestParam(required = false) DocumentState state,
             @RequestParam(defaultValue = "25") int limit, @RequestParam(defaultValue = "0") int offset,
             @RequestParam(required = false) String title,
-            @RequestParam(required = false) Long updatedAfterMs) {
+            @RequestParam(required = false) Long updatedAfterMs,
+            @RequestParam(defaultValue = "false") boolean oldestFirst) {
         if (limit < 1 || limit > 100) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Limit must be between 1 and 100");
         }
@@ -62,7 +63,7 @@ public class DocumentController {
         if (updatedAfterMs != null && updatedAfterMs < 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Update timestamp must be nonnegative");
         }
-        return service.list(state, limit, offset, term, updatedAfterMs);
+        return service.list(state, limit, offset, term, updatedAfterMs, oldestFirst);
     }
 
     @GetMapping("/{id}")

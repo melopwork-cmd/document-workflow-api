@@ -59,4 +59,4 @@ Workflow problem responses include a `code` field. Document clients can use `NOT
 
 Use `GET /documents/{id}/history?afterVersion=1` to read events with versions greater than 1. The parameter is optional and must be nonnegative when supplied.
 
-Add `updatedAfterMs` to `GET /documents` to filter by a strictly later update time. Pass a nonnegative Unix timestamp in milliseconds.
+Add `updatedAfterMs` to `GET /documents` to filter by a strictly later update time. Pass a nonnegative Unix timestamp in milliseconds. Set `oldestFirst=true` to page through the earliest updates first.

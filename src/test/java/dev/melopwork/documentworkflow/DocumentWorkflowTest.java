@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,6 +25,7 @@ class DocumentWorkflowTest {
     @Autowired MockMvc http;
     @Autowired ObjectMapper json;
     @Autowired DocumentService documents;
+    @Autowired JdbcClient jdbc;
 
     @Test
     void readsOnlyHistoryAfterTheRequestedVersion() throws Exception {
@@ -194,6 +196,19 @@ class DocumentWorkflowTest {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].id").value(secondId));
         http.perform(get("/documents").param("offset", "-1")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void listsTheOldestMatchingDocumentFirstOnRequest() throws Exception {
+        var older = documents.create("Order fixture one");
+        var newer = documents.create("Order fixture two");
+        jdbc.sql("UPDATE documents SET updated_at = 100 WHERE id = ?").param(older.id().toString()).update();
+        jdbc.sql("UPDATE documents SET updated_at = 200 WHERE id = ?").param(newer.id().toString()).update();
+        http.perform(get("/documents").param("title", "Order fixture").param("limit", "1"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value(newer.id().toString()));
+        http.perform(get("/documents").param("title", "Order fixture").param("limit", "1")
+                        .param("oldestFirst", "true"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value(older.id().toString()));
     }
 
     @Test

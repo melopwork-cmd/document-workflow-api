@@ -39,12 +39,13 @@ public class DocumentService {
                 .orElseThrow(() -> new WorkflowException(WorkflowException.Reason.NOT_FOUND, "Document not found"));
     }
 
-    public List<Document> list(DocumentState state, int limit, int offset, String title, Long updatedAfterMs) {
+    public List<Document> list(DocumentState state, int limit, int offset, String title, Long updatedAfterMs,
+                               boolean oldestFirst) {
         var statement = jdbc.sql("SELECT id, title, state, version, updated_at FROM documents WHERE 1 = 1 "
                 + (state == null ? "" : "AND state = ? ")
                 + (title == null ? "" : "AND LOCATE(LOWER(?), LOWER(title)) > 0 ")
                 + (updatedAfterMs == null ? "" : "AND updated_at > ? ")
-                + "ORDER BY updated_at DESC, id ASC LIMIT ? OFFSET ?");
+                + "ORDER BY updated_at " + (oldestFirst ? "ASC" : "DESC") + ", id ASC LIMIT ? OFFSET ?");
         if (state != null) {
             statement.param(state.name());
         }
