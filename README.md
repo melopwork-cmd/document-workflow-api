@@ -28,6 +28,7 @@ Invoke-RestMethod "$base/documents/$id/history"
 | POST /documents | Cria o documento e retorna HTTP 201 com o cabeçalho Location. |
 | GET /documents | Lista os documentos mais recentes. Aceita state e limit (de 1 a 100, padrão 25). |
 | GET /documents/{id} | Retorna o estado e a versão atuais. |
+| GET /documents/states | Lista as transições permitidas para cada estado. |
 | POST /documents/{id}/transitions | Aplica uma transição com a versão lida pelo cliente. |
 | GET /documents/{id}/history | Lista os eventos em ordem de versão. |
 | GET /actuator/health | Informa a saúde da aplicação. |
