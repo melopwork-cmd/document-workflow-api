@@ -26,6 +26,20 @@ class DocumentWorkflowTest {
     @Autowired DocumentService documents;
 
     @Test
+    void readsOnlyHistoryAfterTheRequestedVersion() throws Exception {
+        var id = intake();
+        documents.transition(id, DocumentState.IN_REVIEW, 0);
+        documents.transition(id, DocumentState.APPROVED, 1);
+        http.perform(get("/documents/{id}/history", id).param("afterVersion", "1"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].version").value(2));
+        http.perform(get("/documents/{id}/history", id).param("afterVersion", "2"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+        http.perform(get("/documents/{id}/history", id).param("afterVersion", "-1"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void capturesValidTransitionsInVersionOrder() throws Exception {
         var id = intake();
         http.perform(post("/documents/{id}/transitions", id)
