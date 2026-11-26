@@ -48,3 +48,7 @@ This Java 17 and Spring Boot sample models document intake and review. It illust
 ### Conditional document reads
 
 `GET /documents/{id}` returns an `ETag`. Send it as `If-None-Match` to get HTTP 304 while the document version is current.
+
+### Available transitions
+
+`GET /documents/{id}/transitions` returns the current `version` and `allowedStates`. An archived document has an empty list.
