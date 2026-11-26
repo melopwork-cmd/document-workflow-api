@@ -130,6 +130,20 @@ class DocumentWorkflowTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    void conditionallyReadsDocumentByVersion() throws Exception {
+        var id = intake();
+        var etag = http.perform(get("/documents/{id}", id))
+                .andExpect(status().isOk()).andExpect(header().exists("ETag"))
+                .andReturn().getResponse().getHeader("ETag");
+        http.perform(get("/documents/{id}", id).header("If-None-Match", etag))
+                .andExpect(status().isNotModified()).andExpect(content().string(""));
+        documents.transition(id, DocumentState.IN_REVIEW, 0);
+        http.perform(get("/documents/{id}", id).header("If-None-Match", etag))
+                .andExpect(status().isOk()).andExpect(header().string("ETag", "\"" + id + ":1\""))
+                .andExpect(jsonPath("$.version").value(1));
+    }
+
     private UUID intake() throws Exception {
         var created = http.perform(post("/documents")
                         .contentType(MediaType.APPLICATION_JSON)
