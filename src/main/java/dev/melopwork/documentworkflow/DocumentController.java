@@ -47,7 +47,8 @@ public class DocumentController {
     public List<DocumentService.Document> list(
             @RequestParam(required = false) DocumentState state,
             @RequestParam(defaultValue = "25") int limit, @RequestParam(defaultValue = "0") int offset,
-            @RequestParam(required = false) String title) {
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) Long updatedAfterMs) {
         if (limit < 1 || limit > 100) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Limit must be between 1 and 100");
         }
@@ -58,7 +59,10 @@ public class DocumentController {
         if (term != null && term.length() > 120) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Title filter must fit within 120 characters");
         }
-        return service.list(state, limit, offset, term);
+        if (updatedAfterMs != null && updatedAfterMs < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Update timestamp must be nonnegative");
+        }
+        return service.list(state, limit, offset, term, updatedAfterMs);
     }
 
     @GetMapping("/{id}")

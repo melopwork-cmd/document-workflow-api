@@ -58,3 +58,5 @@ Use `GET /documents?limit=25&offset=25` for the second page. Omit `offset` to st
 Workflow problem responses include a `code` field. Document clients can use `NOT_FOUND`, `INVALID_TRANSITION`, and `VERSION_CONFLICT` to handle those responses.
 
 Use `GET /documents/{id}/history?afterVersion=1` to read events with versions greater than 1. The parameter is optional and must be nonnegative when supplied.
+
+Add `updatedAfterMs` to `GET /documents` to filter by a strictly later update time. Pass a nonnegative Unix timestamp in milliseconds.
