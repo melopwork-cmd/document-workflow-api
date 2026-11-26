@@ -26,6 +26,20 @@ class DocumentWorkflowTest {
     @Autowired DocumentService documents;
 
     @Test
+    void limitsHistoryAndCanReadTheNextPage() throws Exception {
+        var id = intake();
+        documents.transition(id, DocumentState.IN_REVIEW, 0);
+        http.perform(get("/documents/{id}/history", id).param("limit", "1"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].version").value(0));
+        http.perform(get("/documents/{id}/history", id).param("limit", "1").param("afterVersion", "0"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].version").value(1));
+        http.perform(get("/documents/{id}/history", id).param("limit", "101"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void readsOnlyHistoryAfterTheRequestedVersion() throws Exception {
         var id = intake();
         documents.transition(id, DocumentState.IN_REVIEW, 0);

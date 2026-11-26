@@ -73,14 +73,15 @@ public class DocumentController {
 
     @GetMapping("/{id}/history")
     public List<DocumentService.Event> history(@PathVariable UUID id,
-            @RequestParam(required = false) Integer afterVersion) {
-        if (afterVersion == null) {
-            return service.history(id);
-        }
-        if (afterVersion < 0) {
+            @RequestParam(required = false) Integer afterVersion,
+            @RequestParam(required = false) Integer limit) {
+        if (afterVersion != null && afterVersion < 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "After-version must be nonnegative");
         }
-        return service.history(id, afterVersion);
+        if (limit != null && (limit < 1 || limit > 100)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "History limit must be between 1 and 100");
+        }
+        return service.history(id, afterVersion == null ? -1 : afterVersion, limit);
     }
 
     @GetMapping("/{id}/transitions")

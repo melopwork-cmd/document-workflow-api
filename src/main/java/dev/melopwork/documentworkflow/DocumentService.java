@@ -64,17 +64,24 @@ public class DocumentService {
     }
 
     public List<Event> history(UUID id) {
-        return history(id, -1);
+        return history(id, -1, null);
     }
 
     public List<Event> history(UUID id, int afterVersion) {
+        return history(id, afterVersion, null);
+    }
+
+    public List<Event> history(UUID id, int afterVersion, Integer limit) {
         get(id);
-        return jdbc.sql("""
+        var statement = jdbc.sql("""
                 SELECT version, from_state, to_state, occurred_at
                 FROM document_events WHERE document_id = ? AND version > ? ORDER BY version
-                """)
-                .param(id.toString()).param(afterVersion)
-                .query((rs, row) -> {
+                """ + (limit == null ? "" : " LIMIT ?"))
+                .param(id.toString()).param(afterVersion);
+        if (limit != null) {
+            statement.param(limit);
+        }
+        return statement.query((rs, row) -> {
                     var previous = rs.getString("from_state");
                     return new Event(rs.getInt("version"), previous == null ? null : DocumentState.valueOf(previous),
                             DocumentState.valueOf(rs.getString("to_state")),
