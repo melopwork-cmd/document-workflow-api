@@ -164,10 +164,12 @@ class DocumentWorkflowTest {
         var id = intake();
         http.perform(get("/documents/{id}/transitions", id))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.version").value(0))
+                .andExpect(jsonPath("$.currentState").value("RECEIVED"))
                 .andExpect(jsonPath("$.allowedStates[0]").value("IN_REVIEW"));
         documents.transition(id, DocumentState.IN_REVIEW, 0);
         http.perform(get("/documents/{id}/transitions", id))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.version").value(1))
+                .andExpect(jsonPath("$.currentState").value("IN_REVIEW"))
                 .andExpect(jsonPath("$.allowedStates[0]").value("APPROVED"))
                 .andExpect(jsonPath("$.allowedStates[1]").value("REJECTED"));
     }
