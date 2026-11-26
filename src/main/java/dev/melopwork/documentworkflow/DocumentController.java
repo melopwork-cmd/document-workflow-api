@@ -45,11 +45,15 @@ public class DocumentController {
 
     @GetMapping
     public List<DocumentService.Document> list(
-            @RequestParam(required = false) DocumentState state, @RequestParam(defaultValue = "25") int limit) {
+            @RequestParam(required = false) DocumentState state,
+            @RequestParam(defaultValue = "25") int limit, @RequestParam(defaultValue = "0") int offset) {
         if (limit < 1 || limit > 100) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Limit must be between 1 and 100");
         }
-        return service.list(state, limit);
+        if (offset < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Offset must be nonnegative");
+        }
+        return service.list(state, limit, offset);
     }
 
     @GetMapping("/{id}")

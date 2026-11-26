@@ -39,14 +39,14 @@ public class DocumentService {
                 .orElseThrow(() -> new WorkflowException(WorkflowException.Reason.NOT_FOUND, "Document not found"));
     }
 
-    public List<Document> list(DocumentState state, int limit) {
+    public List<Document> list(DocumentState state, int limit, int offset) {
         var statement = jdbc.sql("SELECT id, title, state, version, updated_at FROM documents "
                 + (state == null ? "" : "WHERE state = ? ")
-                + "ORDER BY updated_at DESC, id ASC LIMIT ?");
+                + "ORDER BY updated_at DESC, id ASC LIMIT ? OFFSET ?");
         if (state != null) {
             statement.param(state.name());
         }
-        return statement.param(limit).query(DocumentService::mapDocument).list();
+        return statement.param(limit).param(offset).query(DocumentService::mapDocument).list();
     }
 
     private static Document mapDocument(ResultSet rs, int row) throws SQLException {
