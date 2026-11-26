@@ -196,6 +196,18 @@ class DocumentWorkflowTest {
         http.perform(get("/documents").param("offset", "-1")).andExpect(status().isBadRequest());
     }
 
+    @Test
+    void filtersUpdatesStrictlyAfterTheGivenTimestamp() throws Exception {
+        var item = documents.create("Timestamp filter fixture");
+        long millis = item.updatedAt().toEpochMilli();
+        var title = "Timestamp filter fixture";
+        http.perform(get("/documents").param("title", title).param("updatedAfterMs", Long.toString(millis - 1)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value(item.id().toString()));
+        http.perform(get("/documents").param("title", title).param("updatedAfterMs", Long.toString(millis)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+        http.perform(get("/documents").param("updatedAfterMs", "-1")).andExpect(status().isBadRequest());
+    }
+
     private UUID intake() throws Exception {
         var created = http.perform(post("/documents")
                         .contentType(MediaType.APPLICATION_JSON)
