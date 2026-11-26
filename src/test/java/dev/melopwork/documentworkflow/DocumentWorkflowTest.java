@@ -157,6 +157,19 @@ class DocumentWorkflowTest {
                 .andExpect(jsonPath("$.allowedStates[1]").value("REJECTED"));
     }
 
+    @Test
+    void returnsTheNextDocumentAtTheRequestedOffset() throws Exception {
+        documents.create("First document for paging");
+        documents.create("Second document for paging");
+        var body = http.perform(get("/documents").param("limit", "2"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        var secondId = json.readTree(body).get(1).get("id").asText();
+        http.perform(get("/documents").param("limit", "1").param("offset", "1"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(secondId));
+        http.perform(get("/documents").param("offset", "-1")).andExpect(status().isBadRequest());
+    }
+
     private UUID intake() throws Exception {
         var created = http.perform(post("/documents")
                         .contentType(MediaType.APPLICATION_JSON)
