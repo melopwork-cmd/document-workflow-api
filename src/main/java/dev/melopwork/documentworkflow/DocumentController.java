@@ -63,8 +63,15 @@ public class DocumentController {
     }
 
     @GetMapping("/{id}/history")
-    public List<DocumentService.Event> history(@PathVariable UUID id) {
-        return service.history(id);
+    public List<DocumentService.Event> history(@PathVariable UUID id,
+            @RequestParam(required = false) Integer afterVersion) {
+        if (afterVersion == null) {
+            return service.history(id);
+        }
+        if (afterVersion < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "After-version must be nonnegative");
+        }
+        return service.history(id, afterVersion);
     }
 
     @GetMapping("/{id}/transitions")

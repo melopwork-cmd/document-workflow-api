@@ -56,12 +56,16 @@ public class DocumentService {
     }
 
     public List<Event> history(UUID id) {
+        return history(id, -1);
+    }
+
+    public List<Event> history(UUID id, int afterVersion) {
         get(id);
         return jdbc.sql("""
                 SELECT version, from_state, to_state, occurred_at
-                FROM document_events WHERE document_id = ? ORDER BY version
+                FROM document_events WHERE document_id = ? AND version > ? ORDER BY version
                 """)
-                .param(id.toString())
+                .param(id.toString()).param(afterVersion)
                 .query((rs, row) -> {
                     var previous = rs.getString("from_state");
                     return new Event(rs.getInt("version"), previous == null ? null : DocumentState.valueOf(previous),
