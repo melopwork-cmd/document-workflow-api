@@ -144,6 +144,19 @@ class DocumentWorkflowTest {
                 .andExpect(jsonPath("$.version").value(1));
     }
 
+    @Test
+    void returnsAllowedTransitionsForTheCurrentVersion() throws Exception {
+        var id = intake();
+        http.perform(get("/documents/{id}/transitions", id))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.version").value(0))
+                .andExpect(jsonPath("$.allowedStates[0]").value("IN_REVIEW"));
+        documents.transition(id, DocumentState.IN_REVIEW, 0);
+        http.perform(get("/documents/{id}/transitions", id))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.version").value(1))
+                .andExpect(jsonPath("$.allowedStates[0]").value("APPROVED"))
+                .andExpect(jsonPath("$.allowedStates[1]").value("REJECTED"));
+    }
+
     private UUID intake() throws Exception {
         var created = http.perform(post("/documents")
                         .contentType(MediaType.APPLICATION_JSON)

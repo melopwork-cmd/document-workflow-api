@@ -29,6 +29,8 @@ public class DocumentController {
     public record Intake(@NotBlank @Size(max = 120) String title) {}
     public record Transition(@NotNull DocumentState state, @NotNull @Min(0) Integer expectedVersion) {}
 
+    public record TransitionOptions(int version, List<DocumentState> allowedStates) {}
+
     private final DocumentService service;
 
     public DocumentController(DocumentService service) {
@@ -59,6 +61,12 @@ public class DocumentController {
     @GetMapping("/{id}/history")
     public List<DocumentService.Event> history(@PathVariable UUID id) {
         return service.history(id);
+    }
+
+    @GetMapping("/{id}/transitions")
+    public TransitionOptions transitions(@PathVariable UUID id) {
+        var document = service.get(id);
+        return new TransitionOptions(document.version(), document.state().availableTransitions());
     }
 
     @PostMapping("/{id}/transitions")
