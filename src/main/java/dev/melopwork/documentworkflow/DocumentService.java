@@ -1,5 +1,7 @@
 package dev.melopwork.documentworkflow;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -32,11 +34,25 @@ public class DocumentService {
     public Document get(UUID id) {
         return jdbc.sql("SELECT id, title, state, version, updated_at FROM documents WHERE id = ?")
                 .param(id.toString())
-                .query((rs, row) -> new Document(UUID.fromString(rs.getString("id")), rs.getString("title"),
-                        DocumentState.valueOf(rs.getString("state")), rs.getInt("version"),
-                        Instant.ofEpochMilli(rs.getLong("updated_at"))))
+                .query(DocumentService::mapDocument)
                 .optional()
                 .orElseThrow(() -> new WorkflowException(WorkflowException.Reason.NOT_FOUND, "Document not found"));
+    }
+
+    public List<Document> list(DocumentState state, int limit) {
+        var statement = jdbc.sql("SELECT id, title, state, version, updated_at FROM documents "
+                + (state == null ? "" : "WHERE state = ? ")
+                + "ORDER BY updated_at DESC, id ASC LIMIT ?");
+        if (state != null) {
+            statement.param(state.name());
+        }
+        return statement.param(limit).query(DocumentService::mapDocument).list();
+    }
+
+    private static Document mapDocument(ResultSet rs, int row) throws SQLException {
+        return new Document(UUID.fromString(rs.getString("id")), rs.getString("title"),
+                DocumentState.valueOf(rs.getString("state")), rs.getInt("version"),
+                Instant.ofEpochMilli(rs.getLong("updated_at")));
     }
 
     public List<Event> history(UUID id) {
