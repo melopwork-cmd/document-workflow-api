@@ -173,6 +173,17 @@ class DocumentWorkflowTest {
     }
 
     @Test
+    void searchesTitlesUsingCaseInsensitiveLiteralText() throws Exception {
+        var id = documents.create("Quarterly 100% Review").id();
+        documents.create("Quarterly 100x Review");
+        http.perform(get("/documents").param("title", "  % review  ").param("state", "RECEIVED"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(id.toString()));
+        http.perform(get("/documents").param("title", "a".repeat(121)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void returnsTheNextDocumentAtTheRequestedOffset() throws Exception {
         documents.create("First document for paging");
         documents.create("Second document for paging");

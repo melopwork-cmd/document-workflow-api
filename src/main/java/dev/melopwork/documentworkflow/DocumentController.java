@@ -46,14 +46,19 @@ public class DocumentController {
     @GetMapping
     public List<DocumentService.Document> list(
             @RequestParam(required = false) DocumentState state,
-            @RequestParam(defaultValue = "25") int limit, @RequestParam(defaultValue = "0") int offset) {
+            @RequestParam(defaultValue = "25") int limit, @RequestParam(defaultValue = "0") int offset,
+            @RequestParam(required = false) String title) {
         if (limit < 1 || limit > 100) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Limit must be between 1 and 100");
         }
         if (offset < 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Offset must be nonnegative");
         }
-        return service.list(state, limit, offset);
+        var term = title == null || title.isBlank() ? null : title.strip();
+        if (term != null && term.length() > 120) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Title filter must fit within 120 characters");
+        }
+        return service.list(state, limit, offset, term);
     }
 
     @GetMapping("/{id}")
