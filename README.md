@@ -44,3 +44,7 @@ This Java 17 and Spring Boot sample models document intake and review. It illust
 
 - [Spring Boot system requirements](https://docs.spring.io/spring-boot/3.5/system-requirements.html)
 - [Apache Maven Wrapper](https://maven.apache.org/wrapper/)
+
+### Conditional document reads
+
+`GET /documents/{id}` returns an `ETag`. Send it as `If-None-Match` to get HTTP 304 while the document version is current.

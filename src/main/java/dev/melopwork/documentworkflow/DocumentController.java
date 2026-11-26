@@ -51,8 +51,9 @@ public class DocumentController {
     }
 
     @GetMapping("/{id}")
-    public DocumentService.Document get(@PathVariable UUID id) {
-        return service.get(id);
+    public ResponseEntity<DocumentService.Document> get(@PathVariable UUID id) {
+        var document = service.get(id);
+        return ResponseEntity.ok().eTag("\"" + id + ":" + document.version() + "\"").body(document);
     }
 
     @GetMapping("/{id}/history")
