@@ -85,6 +85,8 @@ public class DocumentController {
             case VERSION_CONFLICT -> HttpStatus.CONFLICT;
             case INVALID_TRANSITION -> HttpStatus.UNPROCESSABLE_ENTITY;
         };
-        return ProblemDetail.forStatusAndDetail(status, error.getMessage());
+        var problem = ProblemDetail.forStatusAndDetail(status, error.getMessage());
+        problem.setProperty("code", error.reason().name());
+        return problem;
     }
 }

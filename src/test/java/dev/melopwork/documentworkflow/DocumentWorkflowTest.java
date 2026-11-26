@@ -56,7 +56,8 @@ class DocumentWorkflowTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"state\":\"APPROVED\",\"expectedVersion\":0}"))
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.code").value("INVALID_TRANSITION"));
 
         assertThat(documents.get(id).state()).isEqualTo(DocumentState.RECEIVED);
         assertThat(documents.history(id)).hasSize(1);
@@ -68,7 +69,7 @@ class DocumentWorkflowTest {
                         .contentType(MediaType.APPLICATION_JSON).content("{\"title\":\" \"}"))
                 .andExpect(status().isBadRequest());
         http.perform(get("/documents/{id}", UUID.randomUUID()))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("NOT_FOUND"));
         var id = intake();
         http.perform(post("/documents/{id}/transitions", id)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -86,7 +87,7 @@ class DocumentWorkflowTest {
         http.perform(post("/documents/{id}/transitions", first.id())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"state\":\"APPROVED\",\"expectedVersion\":0}"))
-                .andExpect(status().isConflict());
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("VERSION_CONFLICT"));
         assertThat(documents.history(first.id())).hasSize(2);
     }
 
